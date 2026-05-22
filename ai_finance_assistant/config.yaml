@@ -1,0 +1,36 @@
+llm:
+  provider: "openai"
+  model: "gpt-4o-mini"
+  temperature: 0.3
+  max_tokens: 2048
+
+vector_db:
+  type: "faiss"
+  embedding_model: "all-MiniLM-L6-v2"
+  chunk_size: 500
+  chunk_overlap: 50
+  index_path: "data/faiss_index"
+
+agents:
+  finance_qa:
+    rag_k: 3
+    system_prompt: "You are a financial education expert. Explain concepts clearly for beginners. Always add a disclaimer that this is educational content, not financial advice."
+  portfolio:
+    system_prompt: "You are a portfolio analysis expert. Analyze portfolios objectively, identify diversification issues, and suggest improvements. This is educational analysis, not financial advice."
+  market:
+    cache_ttl: 300
+    system_prompt: "You are a market analysis expert. Provide factual market data and trends. This is educational information, not financial advice."
+  goal_planning:
+    system_prompt: "You are a financial goal planning expert. Help users set realistic goals, create plans, and understand the math behind achieving them. This is educational guidance, not financial advice."
+  news:
+    max_articles: 5
+    system_prompt: "You are a financial news analyst. Summarize and contextualize financial news clearly. Present facts objectively."
+  tax:
+    rag_k: 3
+    system_prompt: "You are a tax education specialist. Explain tax concepts clearly. Always recommend consulting a tax professional for specific advice."
+
+cache:
+  ttl: 300
+  max_size: 100
+
+session_db: "data/sessions.db"

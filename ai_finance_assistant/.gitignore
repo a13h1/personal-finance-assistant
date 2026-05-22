@@ -1,0 +1,26 @@
+# Environment
+.env
+
+# Virtual environment
+.venv/
+
+# Generated data (rebuilt on first run)
+data/faiss_index/
+data/sessions.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Test cache
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
