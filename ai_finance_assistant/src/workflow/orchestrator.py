@@ -40,7 +40,9 @@ class FinanceOrchestrator:
         pkg_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         project_root = os.path.dirname(pkg_root)
 
-        self.session_manager = SessionManager()
+        default_db = f"sqlite:///{os.path.join(project_root, 'data', 'sessions.db')}"
+        database_url = os.getenv("DATABASE_URL", default_db)
+        self.session_manager = SessionManager(database_url=database_url)
         self.market_data = MarketDataService(cache_ttl=self.config["cache"]["ttl"])
 
         # Initialize vector store
