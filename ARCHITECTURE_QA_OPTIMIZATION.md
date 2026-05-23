@@ -419,6 +419,32 @@ Phase 3: Production (Full HA)
 ├─ Cost: $670/month (5x QA cost)
 └─ Duration: Ongoing
 
+---
+
+## Available AWS Resources
+
+Here is the list of services mentioned in the policy:
+
+1. **EC2** (`ec2:*`)
+2. **EC2 Instance Connect** (`ec2-instance-connect:*`)
+3. **Billing Console** (Various `billing:` actions)
+4. **Account Information** (`account:GetAccountInformation`)
+5. **Cost Explorer (CE)** (Various `ce:` actions)
+6. **SageMaker** (`sagemaker:ListDomains`)
+7. **Consolidated Billing** (Various `consolidatedbilling:` actions)
+8. **Cost and Usage Reports (CUR)** (Various `cur:` actions)
+9. **Free Tier** (Various `freetier:` actions)
+10. **Invoicing** (Various `invoicing:` actions)
+11. **Payments** (Various `payments:` actions)
+12. **Tax** (Various `tax:` actions)
+13. **RDS** (`rds:*`)
+14. **S3** (`s3:*`)
+15. **ECR** (`ecr:*`)
+16. **ECR Public** (`ecr-public:*`)
+17. **Glue** (`glue:*`)
+18. **IAM** (`iam:*`)
+
+
 Rollback Plan (if issues found):
 ├─ Keep QA environment running
 ├─ Use QA for hotfix testing

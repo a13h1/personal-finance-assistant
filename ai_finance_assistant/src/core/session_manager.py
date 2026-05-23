@@ -6,7 +6,10 @@ import os
 import logging
 
 from sqlalchemy import create_engine, Column, String, Float, Text, Integer, Index
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker, scoped_session
+from sqlalchemy.pool import NullPool
+from sqlalchemy.exc import OperationalError
+from contextlib import contextmanager
 
 logger = logging.getLogger(__name__)
 
@@ -86,19 +89,84 @@ class SessionManager:
             if parent:
                 os.makedirs(parent, exist_ok=True)
 
-        connect_args = {"check_same_thread": False} if database_url.startswith("sqlite") else {}
+        is_sqlite = database_url.startswith("sqlite")
+        connect_args = {"check_same_thread": False, "timeout": 30} if is_sqlite else {}
+
+        # For SQLite use NullPool to avoid connection sharing surprises in threaded contexts.
+        poolclass = NullPool if is_sqlite else None
+
+        engine_kwargs = dict(pool_pre_ping=True)
+        if poolclass is not None:
+            engine_kwargs["poolclass"] = poolclass
 
         self.engine = create_engine(
             database_url,
-            pool_pre_ping=True,   # recover stale RDS connections automatically
             connect_args=connect_args,
+            **engine_kwargs,
         )
-        Base.metadata.create_all(self.engine)
-        self._Session = sessionmaker(bind=self.engine)
+
+        # Prefer migrations when requested, otherwise fall back to metadata.create_all for dev
+        use_migrations = os.environ.get("USE_ALEMBIC_MIGRATIONS", "false").lower() in ("1", "true", "yes")
+        if use_migrations:
+            try:
+                # Run alembic upgrade head programmatically if available
+                from alembic.config import Config
+                from alembic import command
+
+                cfg_path = os.path.join(os.path.dirname(__file__), '..', '..', 'alembic.ini')
+                cfg = Config(os.path.abspath(cfg_path))
+                # Ensure sqlalchemy.url is set to current database
+                cfg.set_main_option('sqlalchemy.url', database_url)
+                command.upgrade(cfg, 'head')
+                logger.info("Applied Alembic migrations (head)")
+            except Exception as e:
+                logger.warning(f"Failed to run Alembic migrations: {e}. Falling back to create_all.")
+                try:
+                    Base.metadata.create_all(self.engine)
+                except Exception as e2:
+                    logger.warning(f"Failed to create DB schema (continuing): {e2}")
+        else:
+            try:
+                # Schema creation may race in concurrent startups; log and continue on failure
+                Base.metadata.create_all(self.engine)
+            except Exception as e:
+                logger.warning(f"Failed to create DB schema (continuing): {e}")
+
+        # Use scoped_session so sessions are thread-local and easier to manage in web servers
+        self._Session = scoped_session(sessionmaker(bind=self.engine, expire_on_commit=False))
         self._cache: Dict[str, Dict] = {}
 
         display_url = database_url.split("@")[-1] if "@" in database_url else database_url
         logger.info(f"SessionManager connected to {display_url}")
+
+    @contextmanager
+    def session_scope(self, retries: int = 3, backoff: float = 0.1):
+        """Provide a transactional scope around a series of operations.
+
+        Retries a few times on transient OperationalError.
+        """
+        attempt = 0
+        while True:
+            attempt += 1
+            db = self._Session()
+            try:
+                yield db
+                db.commit()
+                break
+            except OperationalError as oe:
+                db.rollback()
+                logger.warning(f"OperationalError on DB access (attempt {attempt}): {oe}")
+                if attempt >= retries:
+                    raise
+                time.sleep(backoff * attempt)
+            except Exception:
+                db.rollback()
+                raise
+            finally:
+                try:
+                    db.close()
+                except Exception:
+                    pass
 
     # ------------------------------------------------------------------ #
     # Public API                                                           #
@@ -107,7 +175,7 @@ class SessionManager:
     ALLOWED_RISK_TOLERANCE = {"conservative", "moderate", "aggressive"}
 
     def _resolve_user_id(self, session_id: str, user_id: Optional[str] = None) -> str:
-        with self._Session() as db:
+        with self.session_scope() as db:
             session_record = db.get(SessionRecord, session_id)
 
             if user_id:
@@ -115,15 +183,12 @@ class SessionManager:
                 if user is None:
                     user = UserRecord(user_id=user_id)
                     db.add(user)
-                    db.commit()
 
                 if session_record:
                     if session_record.user_id != user_id:
                         session_record.user_id = user_id
-                        db.commit()
                 else:
                     db.add(SessionRecord(session_id=session_id, user_id=user_id))
-                    db.commit()
                 return user_id
 
             if session_record:
@@ -135,7 +200,6 @@ class SessionManager:
                 db.add(user)
 
             db.add(SessionRecord(session_id=session_id, user_id=session_id))
-            db.commit()
             return session_id
 
     def get_or_create_session(self, session_id: str, user_id: Optional[str] = None) -> Dict:
@@ -144,12 +208,11 @@ class SessionManager:
 
         canonical_user_id = self._resolve_user_id(session_id, user_id=user_id)
 
-        with self._Session() as db:
+        with self.session_scope() as db:
             user = db.get(UserRecord, canonical_user_id)
             if user is None:
                 user = UserRecord(user_id=canonical_user_id)
                 db.add(user)
-                db.commit()
 
             profile = UserProfile(
                 user_id=user.user_id,
@@ -182,12 +245,11 @@ class SessionManager:
         turn = ConversationTurn(role=role, content=content, agent=agent)
         session["history"].append(turn)
         canonical_user_id = self._resolve_user_id(session_id, user_id=user_id)
-        with self._Session() as db:
+        with self.session_scope() as db:
             db.add(HistoryRecord(
                 user_id=canonical_user_id, role=role, content=content,
                 agent=agent, timestamp=turn.timestamp,
             ))
-            db.commit()
 
     def get_history(self, session_id: str, last_n: int = 10) -> List[Dict]:
         session = self.get_or_create_session(session_id)
@@ -199,14 +261,13 @@ class SessionManager:
         session["portfolio"] = portfolio
         payload = json.dumps(portfolio)
         canonical_user_id = self._resolve_user_id(session_id, user_id=user_id)
-        with self._Session() as db:
+        with self.session_scope() as db:
             rec = db.get(PortfolioRecord, canonical_user_id)
             if rec:
                 rec.portfolio_json = payload
                 rec.updated_at = time.time()
             else:
                 db.add(PortfolioRecord(user_id=canonical_user_id, portfolio_json=payload))
-            db.commit()
 
     def get_portfolio(self, session_id: str, user_id: Optional[str] = None) -> Optional[Dict]:
         return self.get_or_create_session(session_id, user_id=user_id).get("portfolio")
@@ -224,14 +285,13 @@ class SessionManager:
             if hasattr(session["profile"], k):
                 setattr(session["profile"], k, v)
         canonical_user_id = self._resolve_user_id(session_id)
-        with self._Session() as db:
+        with self.session_scope() as db:
             user = db.get(UserRecord, canonical_user_id)
             if user:
                 for k, v in kwargs.items():
                     if hasattr(user, k):
                         setattr(user, k, v)
                 user.updated_at = time.time()
-                db.commit()
 
     def get_profile(self, session_id: str, user_id: Optional[str] = None) -> UserProfile:
         return self.get_or_create_session(session_id, user_id=user_id)["profile"]
@@ -248,7 +308,7 @@ class SessionManager:
     # ------------------------------------------------------------------ #
 
     def list_users(self) -> List[UserProfile]:
-        with self._Session() as db:
+        with self.session_scope() as db:
             return [
                 UserProfile(
                     user_id=u.user_id,
@@ -262,8 +322,7 @@ class SessionManager:
 
     def delete_user(self, session_id: str):
         self._cache.pop(session_id, None)
-        with self._Session() as db:
+        with self.session_scope() as db:
             db.query(HistoryRecord).filter(HistoryRecord.user_id == session_id).delete()
             db.query(PortfolioRecord).filter(PortfolioRecord.user_id == session_id).delete()
             db.query(UserRecord).filter(UserRecord.user_id == session_id).delete()
-            db.commit()

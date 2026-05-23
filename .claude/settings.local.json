@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m py_compile src/agents/base_agent.py src/agents/finance_qa_agent.py src/agents/portfolio_agent.py src/agents/market_agent.py src/agents/goal_planning_agent.py src/agents/news_agent.py src/agents/tax_agent.py)",
+      "Bash(python3 -c ' *)"
+    ]
+  }
+}
