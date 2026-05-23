@@ -39,6 +39,10 @@ def initialize_session():
         st.session_state.messages = []
     if "portfolio_holdings" not in st.session_state:
         st.session_state.portfolio_holdings = []
+    if "risk_profile" not in st.session_state:
+        st.session_state.risk_profile = "moderate"
+    if "user_id" not in st.session_state:
+        st.session_state.user_id = None
 
 
 def render_chat_tab(orchestrator):
@@ -184,6 +188,43 @@ def render_market_tab(orchestrator):
                 change = data.get("change_pct", 0) or 0
                 cols[i].metric(name, f"{data['price']:,.2f}", delta=f"{change:+.2f}%")
 
+def render_profile_tab(orchestrator):
+    st.header("Risk Profile")
+    st.caption("Choose a risk profile to personalize your financial guidance.")
+
+    options = ["conservative", "moderate", "aggressive"]
+    current_index = options.index(st.session_state.risk_profile) if st.session_state.risk_profile in options else 1
+    selected_profile = st.radio(
+        "Select your risk profile:",
+        options,
+        index=current_index,
+        horizontal=True,
+    )
+
+    if st.button("Save Risk Profile"):
+        orchestrator.session_manager.update_profile(
+            st.session_state.session_id,
+            risk_tolerance=selected_profile,
+        )
+        st.session_state.risk_profile = selected_profile
+        st.success(f"Saved risk profile: {selected_profile.title()}")
+
+    st.markdown(
+        """
+        **Profile descriptions**
+        - **Conservative**: preservation first, lower volatility, more defensive guidance.
+        - **Moderate**: balanced growth and risk management.
+        - **Aggressive**: focus on higher potential returns with higher risk.
+        """
+    )
+
+    st.divider()
+    st.write("Current saved profile:")
+    st.info(st.session_state.risk_profile.title())
+
+    st.markdown(
+        "Risk profile is persisted for this session and is designed to carry forward to a future login/account flow."
+    )
     st.divider()
 
     # Stock lookup
@@ -244,10 +285,17 @@ def main():
         st.info("Make sure ANTHROPIC_API_KEY is set in your .env file")
         return
 
+    # Sync persisted risk profile into the current session state.
+    try:
+        profile = orchestrator.session_manager.get_profile(st.session_state.session_id)
+        st.session_state.risk_profile = profile.risk_tolerance
+    except Exception:
+        pass
+
     st.title("📈 AI Finance Assistant")
     st.caption("Your personalized financial education companion | Educational purposes only, not financial advice")
 
-    tab1, tab2, tab3 = st.tabs(["💬 Chat", "📊 Portfolio", "📈 Market"])
+    tab1, tab2, tab3, tab4 = st.tabs(["💬 Chat", "📊 Portfolio", "📈 Market", "⚖️ Risk Profile"])
 
     with tab1:
         render_chat_tab(orchestrator)
@@ -255,6 +303,8 @@ def main():
         render_portfolio_tab(orchestrator)
     with tab3:
         render_market_tab(orchestrator)
+    with tab4:
+        render_profile_tab(orchestrator)
 
 
 if __name__ == "__main__":
