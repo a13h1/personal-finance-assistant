@@ -84,6 +84,15 @@ class FinanceOrchestrator:
         self.workflow = create_workflow(self.agents)
 
     def process_query(self, query: str, session_id: str) -> dict:
+        """Process a user query through the finance workflow.
+
+        Args:
+            query: The user's input query.
+            session_id: The session identifier for storing and retrieving session state.
+
+        Returns:
+            A dictionary containing the assistant response and the agent intent.
+        """
         self.session_manager.add_message(session_id, "user", query)
 
         history = self.session_manager.get_history(session_id, last_n=10)

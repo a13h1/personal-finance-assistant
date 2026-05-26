@@ -4,10 +4,29 @@ from src.core.llm_interface import LLMInterface
 
 
 class GoalPlanningAgent(BaseAgent):
+    """Agent responsible for generating a structured financial goal plan.
+
+    The GoalPlanningAgent creates a tailored response based on the user's
+    goal-related query and optional contextual profile data. It leverages the
+    underlying language model interface to build a plan that includes timeline
+    clarification, savings estimates, investment guidance, progress milestones,
+    and risk mitigation considerations.
+    """
+
     def __init__(self, llm: LLMInterface, system_prompt: str):
         super().__init__(llm, system_prompt, "Goal Planning")
 
     def process(self, query: str, context: dict, trace_metadata: Optional[dict] = None) -> str:
+        """Generate a financial goal plan response.
+
+        Args:
+            query: The user's goal-related question.
+            context: A dictionary containing optional profile and history data.
+            trace_metadata: Optional metadata for tracing or logging.
+
+        Returns:
+            The generated response from the language model.
+        """
         profile = context.get("profile", {})
         history = context.get("history", [])
 
