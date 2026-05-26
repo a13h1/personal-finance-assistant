@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from src.agents.finance_qa_agent import FinanceQAAgent
 from src.agents.market_agent import MarketAgent
 from src.workflow.router import classify_intent, AgentState
+from langchain_core.messages import HumanMessage
 
 
 def make_state(query: str) -> AgentState:
@@ -118,3 +119,36 @@ class TestFinanceQAAgent:
         history = [{"role": "user", "content": "What is a stock?"}, {"role": "assistant", "content": "A stock is..."}]
         result = agent.process("What about bonds?", {"history": history})
         mock_llm.generate_with_history.assert_called_once()
+
+
+def test_classify_intent_with_messages():
+    from src.workflow.router import classify_intent
+    state = {
+        "messages": [HumanMessage(content="How does capital gains tax work?")],
+    }
+    out = classify_intent(state)
+    assert "intents" in out
+    assert "tax" in out["intents"]
+
+
+def test_financeqa_agent_with_messages_calls_generate_with_history():
+    mock_llm = MagicMock()
+    mock_llm.generate_with_history.return_value = "Contextual answer"
+    mock_retriever = MagicMock()
+    mock_retriever.retrieve_with_sources.return_value = ("", [])
+    agent = FinanceQAAgent(mock_llm, mock_retriever, "system prompt")
+    from langchain_core.messages import HumanMessage
+    messages = [HumanMessage(content="What is a stock?")]
+    result = agent.process("What about bonds?", {"messages": messages})
+    mock_llm.generate_with_history.assert_called_once()
+
+
+def test_financeqa_agent_with_history_calls_generate_with_history():
+    mock_llm = MagicMock()
+    mock_llm.generate_with_history.return_value = "Contextual answer"
+    mock_retriever = MagicMock()
+    mock_retriever.retrieve_with_sources.return_value = ("", [])
+    agent = FinanceQAAgent(mock_llm, mock_retriever, "system prompt")
+    history = [{"role": "user", "content": "What is a stock?"}]
+    result = agent.process("What about bonds?", {"history": history})
+    mock_llm.generate_with_history.assert_called_once()

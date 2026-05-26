@@ -81,34 +81,56 @@ class FinanceOrchestrator:
             "tax": TaxAgent(self.llm, self.retriever, agent_configs["tax"]["system_prompt"]),
         }
 
-        self.workflow = create_workflow(self.agents)
+        self.workflow = create_workflow(self.agents, synthesis_llm=self.llm)
 
     def process_query(self, query: str, session_id: str) -> dict:
+        """Process a user query through the finance workflow.
+
+        Args:
+            query: The user's input query.
+            session_id: The session identifier for storing and retrieving session state.
+
+        Returns:
+            A dictionary containing the assistant response and the agent intent.
+        """
+        from langchain_core.messages import HumanMessage, AIMessage
+        
         self.session_manager.add_message(session_id, "user", query)
 
         history = self.session_manager.get_history(session_id, last_n=10)
         portfolio = self.session_manager.get_portfolio(session_id)
         profile = self.session_manager.get_profile(session_id)
+        
+        messages = []
+        for msg in history:
+            if msg["role"] == "user":
+                messages.append(HumanMessage(content=msg["content"]))
+            elif msg["role"] == "assistant":
+                messages.append(AIMessage(content=msg["content"]))
 
         state = {
-            "query": query,
-            "intent": "",
-            "response": "",
-            "history": history[:-1],  # exclude last user message (already in query)
+            "messages": messages,
+            "intents": [],
             "portfolio": portfolio,
             "profile": {
                 "risk_tolerance": profile.risk_tolerance,
                 "investment_horizon": profile.investment_horizon,
                 "experience_level": profile.experience_level,
             },
+            "session_id": session_id,
             "error": None,
         }
 
         result = self.workflow.invoke(state)
 
-        response = result.get("response", "I'm sorry, I couldn't process your request.")
-        intent = result.get("intent", "unknown")
+        # The final message is the synthesized response or the single agent response
+        final_message = result.get("messages", [])[-1]
+        response = final_message.content if final_message else "I'm sorry, I couldn't process your request."
+        
+        # We can extract the identified intents
+        intents = result.get("intents", [])
+        intent_str = ",".join(intents) if intents else "unknown"
 
-        self.session_manager.add_message(session_id, "assistant", response, agent=intent)
+        self.session_manager.add_message(session_id, "assistant", response, agent=intent_str)
 
-        return {"response": response, "agent": intent}
+        return {"response": response, "agent": intent_str}

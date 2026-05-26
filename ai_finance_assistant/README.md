@@ -104,9 +104,15 @@ pip install -r requirements.txt
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env and add your Anthropic API key:
-# ANTHROPIC_API_KEY=your_actual_key_here
-```
+# Edit .env and add your OPENAI API key:
+# OPENAI_API_KEY=your_actual_key_here
+# Optional Langfuse tracing variables:
+# LANGFUSE_SECRET_KEY=your_langfuse_secret_key
+# LANGFUSE_PUBLIC_KEY=your_langfuse_public_key
+# LANGFUSE_HOST=https://cloud.langfuse.com
+# (Legacy support: LANGFUSE_API_URL is also accepted)```
+
+> The Langfuse AI skill repository has been cloned locally at `third_party/langfuse-skills` for reference and tooling integration.
 
 ### First Run (FAISS Index Building)
 

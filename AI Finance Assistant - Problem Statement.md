@@ -1,9 +1,6 @@
-# **![][image1]**
-
-Goal: Build Production \- Ready AI Agents
 
 
-**Capstone Project : AI Finance Assistant**
+**AI Finance Assistant**
 
 **Democratizing Financial Literacy Through Intelligent Conversational AI** 
 
@@ -138,17 +135,17 @@ The system consists of six specialized agents:
 
 ---
 
-## **4\. Learning Goals**
+## **4\. Technical Skills Needed**
 
 This project provides hands-on experience with cutting-edge AI technologies while addressing a real-world problem:
 
 **Technical Skills:**
 
-* Master multi-agent architectures using LangChain and LangGraph/CrewAI
+* Multi-agent architectures using LangChain and LangGraph/CrewAI
 
-* Implement RAG systems with vector databases
+* RAG systems with vector databases
 
-* Build production-ready AI applications with proper error handling
+* Production-ready AI applications with proper error handling
 
 * Integrate external APIs and manage real-time data
 
@@ -174,39 +171,10 @@ This project provides hands-on experience with cutting-edge AI technologies whil
 
 * Balance technical sophistication with accessibility
 
-*This project simulates a real-world fintech startup scenario where you're building an MVP to democratize financial education. Consider scalability, user trust, and regulatory compliance throughout your implementation.*
+*This application simulates a real-world fintech startup scenario where you're building an MVP to democratize financial education. Consider scalability, user trust, and regulatory compliance throughout your implementation.*
 
 ---
 
-## 
-
-## 
-
-## **5\. Submission Guidelines**
-
-**Working Prototype:**
-
-* Fully functional AI Finance Assistant with all core features:
-
-  * At least above mentioned working agents with specialized capabilities
-
-  * Web interface for conversation
-
-  * Portfolio analysis of user input
-
-  * Real-time market data lookup
-
-  * Ability to plan financial goals keeping risk appetite in mind
-
-* A demo video (5-10 minutes) showcasing:
-
-  * Multi-turn conversations with different agents
-
-  * Portfolio analysis demonstration
-
-  * Market data integration
-
-  * Goal planning example
 
 **Sample Code and Architecture:**
 
@@ -313,8 +281,7 @@ Well-organized codebase following the prescribed structure:
 * **Portfolio Analysis (7%)**: Meaningful metrics and recommendations
 
 * **Market Intelligence (5%)**: Relevant real-time insights
-
-### **Code Quality & Documentation (15%)**
+ **Code Quality & Documentation (15%)**
 
 * **Code Organization (5%)**: Modular architecture with clean code
 

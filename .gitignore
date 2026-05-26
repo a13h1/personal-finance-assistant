@@ -216,3 +216,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Ignore embedded langfuse skills repo
+ai_finance_assistant/third_party/langfuse-skills/

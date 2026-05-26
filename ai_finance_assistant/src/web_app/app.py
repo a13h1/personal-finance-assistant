@@ -151,7 +151,8 @@ def render_portfolio_tab(orchestrator):
                 holdings_df["Value"] = holdings_df["Value"].map("${:,.2f}".format)
                 holdings_df["Gain/Loss"] = holdings_df["Gain/Loss"].map("${:,.2f}".format)
                 holdings_df["Gain/Loss %"] = holdings_df["Gain/Loss %"].map("{:+.1f}%".format)
-                st.dataframe(holdings_df, use_container_width=True)
+                # `use_container_width` is deprecated; use `width="stretch"` instead
+                st.dataframe(holdings_df, width="stretch")
 
             # Sector pie chart
             if analysis.get("sector_allocation_pct"):
@@ -160,7 +161,8 @@ def render_portfolio_tab(orchestrator):
                     names=list(analysis["sector_allocation_pct"].keys()),
                     title="Sector Allocation"
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                # `use_container_width` is deprecated; use `width="stretch"` instead
+                st.plotly_chart(fig, width="stretch")
 
             # AI Analysis button
             if st.button("Get AI Portfolio Analysis"):
@@ -272,7 +274,8 @@ def render_profile_tab(orchestrator):
                     xaxis_rangeslider_visible=False
                 )
                 with col2:
-                    st.plotly_chart(fig, use_container_width=True)
+                    # `use_container_width` is deprecated; use `width="stretch"` instead
+                    st.plotly_chart(fig, width="stretch")
 
 
 def main():

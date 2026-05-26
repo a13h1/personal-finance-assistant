@@ -1,3 +1,4 @@
+from typing import Optional
 from src.agents.base_agent import BaseAgent
 from src.core.llm_interface import LLMInterface
 from src.utils.market_data import MarketDataService
@@ -13,7 +14,7 @@ class MarketAgent(BaseAgent):
         # Simple regex to find stock ticker patterns
         return re.findall(r'\b[A-Z]{1,5}\b', query)
 
-    def process(self, query: str, context: dict) -> str:
+    def process(self, query: str, context: dict, trace_metadata: Optional[dict] = None) -> str:
         symbols = self._extract_symbols(query)
         market_context = ""
 
@@ -44,4 +45,12 @@ User question: {query}
 
 Provide market analysis based on the data above."""
 
-        return self.llm.generate(prompt, self.system_prompt)
+        messages = context.get("messages", [])
+        if messages:
+            from langchain_core.messages import HumanMessage
+            return self.llm.generate_with_history(
+                messages + [HumanMessage(content=prompt)],
+                self.system_prompt,
+                trace_metadata=trace_metadata,
+            )
+        return self.llm.generate(prompt, self.system_prompt, trace_metadata=trace_metadata)
