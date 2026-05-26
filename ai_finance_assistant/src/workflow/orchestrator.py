@@ -81,7 +81,7 @@ class FinanceOrchestrator:
             "tax": TaxAgent(self.llm, self.retriever, agent_configs["tax"]["system_prompt"]),
         }
 
-        self.workflow = create_workflow(self.agents, synthesis_llm=self.llm)
+        self.workflow = create_workflow(self.agents, synthesis_llm=self.llm, classifier_llm=self.llm)
 
     def process_query(self, query: str, session_id: str) -> dict:
         """Process a user query through the finance workflow.
