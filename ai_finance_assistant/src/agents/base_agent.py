@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 from src.core.llm_interface import LLMInterface
 from src.utils.error_handler import with_fallback
 
@@ -10,7 +11,7 @@ class BaseAgent(ABC):
         self.name = name
 
     @abstractmethod
-    def process(self, query: str, context: dict) -> str:
+    def process(self, query: str, context: dict, trace_metadata: Optional[dict] = None) -> str:
         pass
 
     def _build_prompt(self, query: str, additional_context: str = "") -> str:

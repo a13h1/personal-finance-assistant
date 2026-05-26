@@ -1,3 +1,4 @@
+from typing import Optional
 from src.agents.base_agent import BaseAgent
 from src.core.llm_interface import LLMInterface
 from src.rag.retriever import RAGRetriever
@@ -8,7 +9,7 @@ class FinanceQAAgent(BaseAgent):
         super().__init__(llm, system_prompt, "Finance Q&A")
         self.retriever = retriever
 
-    def process(self, query: str, context: dict) -> str:
+    def process(self, query: str, context: dict, trace_metadata: Optional[dict] = None) -> str:
         rag_context, sources = self.retriever.retrieve_with_sources(query, k=3)
 
         prompt = query
@@ -19,10 +20,11 @@ class FinanceQAAgent(BaseAgent):
         if history:
             response = self.llm.generate_with_history(
                 history + [{"role": "user", "content": prompt}],
-                self.system_prompt
+                self.system_prompt,
+                trace_metadata=trace_metadata,
             )
         else:
-            response = self.llm.generate(prompt, self.system_prompt)
+            response = self.llm.generate(prompt, self.system_prompt, trace_metadata=trace_metadata)
 
         if sources:
             response += f"\n\n*Sources: {', '.join(sources)}*"

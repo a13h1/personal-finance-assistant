@@ -1,8 +1,11 @@
 import logging
+import os
 import functools
 from typing import Any, Callable
 
-logging.basicConfig(level=logging.INFO)
+log_level_name = os.environ.get("LANGFUSE_LOG_LEVEL", os.environ.get("LOG_LEVEL", "INFO")).upper()
+log_level = getattr(logging, log_level_name, logging.INFO)
+logging.basicConfig(level=log_level)
 logger = logging.getLogger(__name__)
 
 

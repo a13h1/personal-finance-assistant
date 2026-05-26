@@ -97,7 +97,7 @@ class SessionManager:
 
         engine_kwargs = dict(pool_pre_ping=True)
         if poolclass is not None:
-            engine_kwargs["poolclass"] = poolclass
+            engine_kwargs["poolclass"] = poolclass # type: ignore
 
         self.engine = create_engine(
             database_url,
@@ -185,7 +185,7 @@ class SessionManager:
                     db.add(user)
 
                 if session_record:
-                    if session_record.user_id != user_id:
+                    if session_record.user_id != user_id: # type: ignore
                         session_record.user_id = user_id
                 else:
                     db.add(SessionRecord(session_id=session_id, user_id=user_id))

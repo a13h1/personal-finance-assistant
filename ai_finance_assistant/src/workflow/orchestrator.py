@@ -101,6 +101,7 @@ class FinanceOrchestrator:
                 "investment_horizon": profile.investment_horizon,
                 "experience_level": profile.experience_level,
             },
+            "session_id": session_id,
             "error": None,
         }
 

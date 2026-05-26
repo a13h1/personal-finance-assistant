@@ -1,3 +1,4 @@
+from typing import Optional
 from src.agents.base_agent import BaseAgent
 from src.core.llm_interface import LLMInterface
 from src.utils.market_data import MarketDataService
@@ -9,7 +10,7 @@ class PortfolioAgent(BaseAgent):
         super().__init__(llm, system_prompt, "Portfolio Analysis")
         self.market_data = market_data
 
-    def process(self, query: str, context: dict) -> str:
+    def process(self, query: str, context: dict, trace_metadata: Optional[dict] = None) -> str:
         portfolio = context.get("portfolio")
 
         if not portfolio or not portfolio.get("holdings"):
@@ -49,4 +50,4 @@ Provide analysis including:
 3. Risk assessment
 4. Specific suggestions for improvement"""
 
-        return self.llm.generate(prompt, self.system_prompt)
+        return self.llm.generate(prompt, self.system_prompt, trace_metadata=trace_metadata)
