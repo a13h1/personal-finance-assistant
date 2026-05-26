@@ -1,3 +1,4 @@
+from typing import Optional
 from src.agents.base_agent import BaseAgent
 from src.core.llm_interface import LLMInterface
 
@@ -6,7 +7,7 @@ class GoalPlanningAgent(BaseAgent):
     def __init__(self, llm: LLMInterface, system_prompt: str):
         super().__init__(llm, system_prompt, "Goal Planning")
 
-    def process(self, query: str, context: dict) -> str:
+    def process(self, query: str, context: dict, trace_metadata: Optional[dict] = None) -> str:
         profile = context.get("profile", {})
         history = context.get("history", [])
 
@@ -31,6 +32,7 @@ Provide a detailed financial goal plan including:
         if history:
             return self.llm.generate_with_history(
                 history + [{"role": "user", "content": prompt}],
-                self.system_prompt
+                self.system_prompt,
+                trace_metadata=trace_metadata,
             )
-        return self.llm.generate(prompt, self.system_prompt)
+        return self.llm.generate(prompt, self.system_prompt, trace_metadata=trace_metadata)

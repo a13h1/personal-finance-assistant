@@ -10,6 +10,7 @@ class AgentState(TypedDict):
     portfolio: Optional[Dict]
     profile: Dict
     error: Optional[str]
+    session_id: str
 
 
 def classify_intent(state: AgentState) -> AgentState:
@@ -52,8 +53,13 @@ def create_workflow(agents: Dict) -> Any:
                 "portfolio": state.get("portfolio"),
                 "profile": state.get("profile", {}),
             }
+            trace_metadata = {
+                "session_id": state.get("session_id"),
+                "agent_name": agent_name,
+                "intent": state.get("intent"),
+            }
             try:
-                response = agent.process(state["query"], context)
+                response = agent.process(state["query"], context, trace_metadata=trace_metadata)
             except Exception as e:
                 response = f"I encountered an error processing your request. Please try again. (Error: {str(e)[:100]})"
             return {**state, "response": response}
