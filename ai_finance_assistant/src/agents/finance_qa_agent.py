@@ -44,10 +44,12 @@ class FinanceQAAgent(BaseAgent):
         if rag_context:
             prompt = f"Based on the following financial knowledge:\n\n{rag_context}\n\nAnswer this question: {query}"
 
-        history = context.get("history", [])
-        if history:
+        # Support both `messages` (langchain style) and `history` (tests/legacy callers)
+        messages = context.get("messages") or context.get("history") or []
+        if messages:
+            from langchain_core.messages import HumanMessage
             response = self.llm.generate_with_history(
-                history + [{"role": "user", "content": prompt}],
+                messages + [HumanMessage(content=prompt)],
                 self.system_prompt,
                 trace_metadata=trace_metadata,
             )

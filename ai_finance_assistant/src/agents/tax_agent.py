@@ -16,10 +16,11 @@ class TaxAgent(BaseAgent):
         if rag_context:
             prompt = f"Tax education context:\n\n{rag_context}\n\nUser question: {query}"
 
-        history = context.get("history", [])
-        if history:
+        messages = context.get("messages", [])
+        if messages:
+            from langchain_core.messages import HumanMessage
             response = self.llm.generate_with_history(
-                history + [{"role": "user", "content": prompt}],
+                messages + [HumanMessage(content=prompt)],
                 self.system_prompt,
                 trace_metadata=trace_metadata,
             )

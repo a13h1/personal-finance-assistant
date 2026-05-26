@@ -28,7 +28,7 @@ class GoalPlanningAgent(BaseAgent):
             The generated response from the language model.
         """
         profile = context.get("profile", {})
-        history = context.get("history", [])
+        messages = context.get("messages", [])
 
         profile_context = ""
         if profile:
@@ -48,9 +48,10 @@ Provide a detailed financial goal plan including:
 4. Key milestones to track progress
 5. Potential obstacles and how to overcome them"""
 
-        if history:
+        if messages:
+            from langchain_core.messages import HumanMessage
             return self.llm.generate_with_history(
-                history + [{"role": "user", "content": prompt}],
+                messages + [HumanMessage(content=prompt)],
                 self.system_prompt,
                 trace_metadata=trace_metadata,
             )

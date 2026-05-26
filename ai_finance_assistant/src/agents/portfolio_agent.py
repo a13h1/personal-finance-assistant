@@ -69,4 +69,12 @@ Provide analysis including:
 3. Risk assessment
 4. Specific suggestions for improvement"""
 
+        messages = context.get("messages", [])
+        if messages:
+            from langchain_core.messages import HumanMessage
+            return self.llm.generate_with_history(
+                messages + [HumanMessage(content=prompt)],
+                self.system_prompt,
+                trace_metadata=trace_metadata,
+            )
         return self.llm.generate(prompt, self.system_prompt, trace_metadata=trace_metadata)

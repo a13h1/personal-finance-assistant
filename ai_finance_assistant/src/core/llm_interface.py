@@ -258,14 +258,21 @@ class LLMInterface:
         if system_prompt is not None:
             lc_messages.append(SystemMessage(content=system_prompt))
         for m in messages:
-            content = m['content']
-            if m['role'] == 'user':
-                lc_messages.append(HumanMessage(content=content))
-            elif m['role'] == 'assistant':
-                lc_messages.append(AIMessage(content=content))
+            if hasattr(m, 'type'):
+                lc_messages.append(m)
+            elif isinstance(m, dict):
+                content = m.get('content', '')
+                if m.get('role') == 'user':
+                    lc_messages.append(HumanMessage(content=content))
+                elif m.get('role') == 'assistant':
+                    lc_messages.append(AIMessage(content=content))
 
         trace_metadata = trace_metadata or {}
-        prompt_text = "\n".join([m['content'] for m in messages if m.get('role') == 'user'])
+        prompt_text = "\n".join([
+            str(m.content) if hasattr(m, 'type') else str(m.get('content', ''))
+            for m in messages
+            if (hasattr(m, 'type') and m.type == 'human') or (isinstance(m, dict) and m.get('role') == 'user')
+        ])
         model_name = getattr(self.llm, "model", "unknown")
         model_parameters = {
             "temperature": getattr(self.llm, "temperature", None),
