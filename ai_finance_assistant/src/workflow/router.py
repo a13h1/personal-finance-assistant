@@ -13,7 +13,7 @@ class AgentState(TypedDict):
     session_id: str
 
 
-def classify_intent(state: AgentState) -> AgentState:
+def classify_intent(state: AgentState, classifier_llm: Any = None) -> AgentState:
     # Support two input shapes:
     # - tests and simple callers: state contains a `query` string and expects a single `intent` value
     # - langgraph-style callers: state contains `messages` and we return an `intents` list
@@ -46,7 +46,18 @@ def classify_intent(state: AgentState) -> AgentState:
         intents.append("goal_planning")
 
     if not intents:
-        intents.append("finance_qa")
+        if classifier_llm:
+            prompt = f"Given the user query: '{query}', classify it into one or more of these categories: tax, portfolio, market, news, goal_planning, finance_qa. Return only a comma-separated list of categories."
+            try:
+                llm_response = classifier_llm.generate(prompt)
+                predicted = [p.strip().lower() for p in llm_response.split(',')]
+                valid_intents = {"tax", "portfolio", "market", "news", "goal_planning", "finance_qa"}
+                intents = [p for p in predicted if p in valid_intents]
+            except Exception:
+                pass
+
+        if not intents:
+            intents.append("finance_qa")
 
     # If caller provided a `query` string, tests expect a single `intent` value
     if "query" in state:
@@ -60,10 +71,13 @@ def route_by_intent(state: AgentState) -> List[str]:
     return state["intents"]
 
 
-def create_workflow(agents: Dict, synthesis_llm: Any = None) -> Any:
+def create_workflow(agents: Dict, synthesis_llm: Any = None, classifier_llm: Any = None) -> Any:
     workflow = StateGraph(AgentState)
 
-    workflow.add_node("classify", classify_intent)
+    def classify_node(state: AgentState) -> AgentState:
+        return classify_intent(state, classifier_llm)
+
+    workflow.add_node("classify", classify_node)
 
     agent_names = ["finance_qa", "portfolio", "market", "goal_planning", "news", "tax"]
 

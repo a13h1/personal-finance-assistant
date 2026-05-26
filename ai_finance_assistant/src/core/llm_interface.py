@@ -57,6 +57,8 @@ class LangfuseAdapter:
         if api_key and not (secret_key or public_key):
             secret_key = api_key
             public_key = api_key
+            self.secret_key = api_key
+            self.public_key = api_key
 
         try:
             import langfuse as lf  # type: ignore
