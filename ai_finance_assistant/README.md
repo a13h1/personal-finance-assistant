@@ -1,6 +1,6 @@
 # AI Finance Assistant
 
-A production-ready multi-agent AI application for personal finance education, built with LangGraph, LangChain, and Claude. The system routes user queries to specialized agents covering portfolio analysis, market data, tax education, financial goal planning, and general finance Q&A.
+A production-ready multi-agent AI application for personal finance education, built with LangGraph, LangChain, and OpenAI. The system routes user queries to specialized agents covering portfolio analysis, market data, tax education, financial goal planning, and general finance Q&A.
 
 ## Architecture
 
@@ -40,7 +40,7 @@ User Query
   (18 MD Articles)
        │
        ▼
-  Claude Haiku
+  OpenAI (GPT-4o-mini)
   (LLM Responses)
 ```
 
@@ -106,6 +106,8 @@ pip install -r requirements.txt
 cp .env.example .env
 # Edit .env and add your OPENAI API key:
 # OPENAI_API_KEY=your_actual_key_here
+# Edit .env and add your Anthropic API key:
+# ANTHROPIC_API_KEY=your_actual_key_here
 # Optional Langfuse tracing variables:
 # LANGFUSE_SECRET_KEY=your_langfuse_secret_key
 # LANGFUSE_PUBLIC_KEY=your_langfuse_public_key

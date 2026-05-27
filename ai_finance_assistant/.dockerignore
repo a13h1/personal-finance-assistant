@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+env/
+
+# Data and Secrets
+.env
+data/sessions.db
+*.log
+
+# OS and Git
+.DS_Store
+.git/

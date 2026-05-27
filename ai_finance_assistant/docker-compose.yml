@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # Main Streamlit Web Interface
+  web:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - finance-data:/app/data
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  # Model Context Protocol (MCP) Server for Claude Desktop integration
+  mcp-server:
+    build: .
+    # Override the default command to start the Uvicorn server instead
+    command: ["uvicorn", "src.mcp_server:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - finance-data:/app/data
+    env_file:
+      - .env
+    restart: unless-stopped
+
+volumes:
+  # Persistent volume for SQLite database and downloaded FAISS models
+  finance-data:

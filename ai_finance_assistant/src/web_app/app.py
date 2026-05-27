@@ -285,7 +285,7 @@ def main():
         orchestrator = get_orchestrator()
     except Exception as e:
         st.error(f"Failed to initialize the assistant: {e}")
-        st.info("Make sure ANTHROPIC_API_KEY is set in your .env file")
+        st.info("Make sure OPENAI_API_KEY is set in your .env file")
         return
 
     # Sync persisted risk profile into the current session state.
