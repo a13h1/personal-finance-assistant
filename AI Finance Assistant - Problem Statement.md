@@ -125,7 +125,7 @@ The system consists of six specialized agents:
 
    * Provide market trend analysis and insights
 
-5. **\[OPTIONAL\] Implement MCP server for Claude Desktop integration:**
+5. ** Implement MCP server for Claude Desktop integration:**
 
    * Expose finance tools via Model Context Protocol
 
@@ -206,9 +206,9 @@ Well-organized codebase following the prescribed structure:
 
 └── [README.md](http://readme.md)
 
-* \[Optional\] Comprehensive test suite with unit and integration tests
+* Comprehensive test suite with unit and integration tests
 
-* \[Optional\] Configuration management via YAML/environment variables
+* Configuration management via YAML/environment variables
 
 * Proper error handling and logging throughout
 
@@ -238,56 +238,13 @@ Well-organized codebase following the prescribed structure:
 
 **Deployment Artifacts:**
 
-* Docker configuration (optional)
+* Docker configuration 
 
 * Environment setup files
 
 * Sample data for testing
 
 * Performance benchmarks
-
----
-
-## 
-
-## 
-
-## **6\. Evaluation Criteria**
-
-### **Technical Implementation (40%)**
-
-* **Multi-Agent Architecture (10%)**: Proper implementation of all agents with clean separation of concerns
-
-* **LangGraph Workflow (10%)**: Correct orchestration, state management, and routing
-
-* **RAG Implementation (8%)**: Effective knowledge base indexing and retrieval
-
-* **Real-time Data Integration (7%)**: Robust API integration with proper error handling
-
-* **MCP Server (5%)**: Bonus points for Claude Desktop integration
-
-### **User Experience & Interface (25%)**
-
-* **Streamlit Application (10%)**: Multi-tab interface with responsive design
-
-* **Conversational Flow (8%)**: Natural interactions with context preservation
-
-* **Data Visualization (7%)**: Clear, informative charts and displays
-
-### **Financial Domain Knowledge (20%)**
-
-* **Educational Content (8%)**: Comprehensive, accurate financial information
-
-* **Portfolio Analysis (7%)**: Meaningful metrics and recommendations
-
-* **Market Intelligence (5%)**: Relevant real-time insights
- **Code Quality & Documentation (15%)**
-
-* **Code Organization (5%)**: Modular architecture with clean code
-
-* **Documentation (5%)**: Comprehensive README and inline documentation
-
-* **Testing (5%)**: Thorough test coverage with edge cases
 
 ---
 
